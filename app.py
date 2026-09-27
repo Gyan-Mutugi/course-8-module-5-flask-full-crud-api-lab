@@ -17,38 +17,74 @@ events = [
     Event(2, "Python Workshop")
 ]
 
+# Helper function
+def find_event_by_id(event_id):
+    for event in events:
+        if event.id == event_id:
+            return event
+    return None
+
+# Route: Welcome Message
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"message": "Welcome to the Event Management API"}), 200
+
+# Route: Get All Events
+@app.route('/events', methods=['GET'])
+def get_events():
+    return jsonify([event.to_dict() for event in events]), 200
+
 # TODO: Task 1 - Define the Problem
 # Create a new event from JSON input
 @app.route("/events", methods=["POST"])
 def create_event():
     # TODO: Task 2 - Design and Develop the Code
+    data = request.get_json()
+    if not data or 'title' not in data or not str(data['title']).strip():
+        return jsonify({"error": "Missing or invalid 'title' field"}), 400
 
     # TODO: Task 3 - Implement the Loop and Process Each Element
+    new_id = max([e.id for e in events], default=0) + 1
+    new_event = Event(id=new_id, title=data['title'])
+    events.append(new_event)
 
     # TODO: Task 4 - Return and Handle Results
-    pass
+    return jsonify(new_event.to_dict()), 201
 
 # TODO: Task 1 - Define the Problem
 # Update the title of an existing event
 @app.route("/events/<int:event_id>", methods=["PATCH"])
 def update_event(event_id):
     # TODO: Task 2 - Design and Develop the Code
+    data = request.get_json()
+    if not data or 'title' not in data or not str(data['title']).strip():
+        return jsonify({"error": "Missing or invalid 'title' field"}), 400
 
     # TODO: Task 3 - Implement the Loop and Process Each Element
+    event = find_event_by_id(event_id)
+    if not event:
+        return jsonify({"error": "Event not found"}), 404
+
+    event.title = data['title']
 
     # TODO: Task 4 - Return and Handle Results
-    pass
+    return jsonify(event.to_dict()), 200
 
 # TODO: Task 1 - Define the Problem
 # Remove an event from the list
 @app.route("/events/<int:event_id>", methods=["DELETE"])
 def delete_event(event_id):
     # TODO: Task 2 - Design and Develop the Code
+    event = find_event_by_id(event_id)
 
     # TODO: Task 3 - Implement the Loop and Process Each Element
+    if not event:
+        return jsonify({"error": "Event not found"}), 404
+
+    events.remove(event)
 
     # TODO: Task 4 - Return and Handle Results
-    pass
+    return "", 204
 
 if __name__ == "__main__":
     app.run(debug=True)
